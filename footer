@@ -1,0 +1,16 @@
+if [ $# = 0 ]; then
+	cd "scripts"
+	for s in *; do
+		# only run scripts set executable
+		[ ! -f "$s" ] && continue
+		. "./$s"
+	done
+else
+	# run every script specified by the command line
+	while [ $# -gt 0 ]; do
+		. "./$1"
+		shift
+	done
+fi
+
+# vim: ft=sh

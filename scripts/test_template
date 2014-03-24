@@ -1,0 +1,6 @@
+export NODE="blah"
+template	--dist	"/tmp/file.out" \
+			--src	"templates/file.rsh" \
+			--mode 644 \
+			--user nobody \
+			--group nogroup

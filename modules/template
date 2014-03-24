@@ -1,0 +1,101 @@
+template () {
+	SRC=""
+	DEST=""
+	MODE=""
+	CHUSER=""
+	CHGROUP=""
+	usage="Error calling template:
+template \"srcfile\" \"dest\"
+         -or-
+template --src   \"srcfile\"  \\
+         --dist  \"distfile\" \\
+         --mode  755        \\
+         --user  root       \\
+         --group root
+"
+	# Too few args
+	if [ $# -lt 2 ]; then
+		echo "Too few arguments"
+		echo "$usage"
+		return 1
+	# First case
+	elif [ $# = 2 ]; then
+		SRC="$1"
+		DIST="$2"
+	# Remaining cases
+	else
+		while [ $# -gt 0 ]; do
+			case "$1" in 
+				--src)
+					shift
+					SRC="$1"
+				;;
+				--dist)
+					shift
+					DIST="$1"
+				;;
+				--mode)
+					shift
+					MODE="$1"
+				;;
+				--user)
+					shift
+					CHUSER="$1"
+				;;
+				--group)
+					shift
+					CHGROUP="$1"
+				;;
+				*)
+					echo "Unknown option: $1"
+					echo "$usage"
+					return 1
+				;;
+			esac
+			shift
+		done
+	fi
+	# Check to make sure something set our required variables
+	if [ -z "$SRC" ]; then
+		echo "Missing SRC"
+		echo "$usage"
+		return 1
+	fi
+	if [ -z "$DIST" ]; then
+		echo "Missing DIST"
+		echo "$usage"
+		return 1
+	fi
+	# Actually do the magic
+	(
+		echo "cat <<DOG"
+		cat "$SRC"
+		echo "DOG"
+	) | sh > "$DIST"
+	# Post creation tasks
+	if [ -n "$MODE" ]; then
+		if command_exists chmod; then
+			chmod "$MODE" "$DIST"
+		else
+			echo "No such command chmod"
+			return 1
+		fi
+	fi
+	if [ -n "$CHUSER" ]; then
+		if command_exists chown; then
+			chown "$CHUSER" "$DIST"
+		else
+			echo "No such command chown"
+			return 1
+		fi
+	fi
+	if [ -n "$CHGROUP" ]; then
+		if command_exists chgrp; then
+			chgrp "$CHGROUP" "$DIST"
+		else
+			echo "No such command chgrp"
+			return 1
+		fi
+	fi
+}
+# vim: ft=sh

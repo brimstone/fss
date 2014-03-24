@@ -1,0 +1,7 @@
+command_exists blah &&
+	echo "Blah is a command, really?"
+
+command_exists date &&
+	echo "Today's date is: $(date)"
+
+# vim: ft=sh
