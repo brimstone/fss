@@ -5,9 +5,9 @@ package () {
 package \"name\"
          -or-
 package --name     \"name\"         \\
-		--file     \"path/to/file\" \\
+        --file     \"path/to/file\" \\
         --version  \"version\"      \\
-        --apt                      \\
+        --apt                     \\
         --yum
 "
 	# Too few args
