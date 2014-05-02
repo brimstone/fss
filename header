@@ -8,7 +8,7 @@ command_exists () {
 DEBUGLEVEL=1
 
 log(){
-	[ $DEBUGLEVEL -gt $1] && echo "$PREFIX $2"
+	[ $DEBUGLEVEL -ge $1 ] && echo "==> $2"
 }
 
 debug(){
