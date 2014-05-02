@@ -5,4 +5,24 @@ command_exists () {
 	command -v "$@" >/dev/null 2>&1
 }
 
-DEBUG=1
+DEBUGLEVEL=1
+
+log(){
+	[ $DEBUGLEVEL -gt $1] && echo "$PREFIX $2"
+}
+
+debug(){
+	log 2 "DEBUG: $1"
+}
+
+info(){
+	log 1 "INFO: $1"
+}
+
+warn(){
+	log 0 "WARNING: $1"
+}
+
+error(){
+	log 0 "ERROR: $1"
+}

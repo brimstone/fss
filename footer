@@ -2,10 +2,10 @@ trap "run_fss $@" EXIT
 
 run_fss_file() {
 	if [ ! -f "$1" ]; then
-		echo "$1 not a file"
+		error "$1 not a file"
 		exit 1
 	fi
-	[ $DEBUG -gt 0 ] && echo "==> Running $1"
+	info "Running $1"
 # run our script in a subshell
 	(
 		cd "${1%/*}"
@@ -19,7 +19,7 @@ run_fss_directory() {
 	if [ ! -d "$1" ]; then
 		return 1
 	fi
-	[ $DEBUG -gt 0 ] && echo "==> Running all in $1"
+	info "Running all in $1"
 # run all of the files
 	for s in "$1"/*; do
 		[ -f "$s" ] && run_fss_file "$s" || :
@@ -34,7 +34,7 @@ run_fss() {
 	if [ $# = 0 ]; then
 # Attempt to run everything in the 'scripts' directory
 		if ! run_fss_directory "scripts"; then
-			echo "ERROR: scripts directory missing and no scripts passed via cmdline!" >&2
+			error "scripts directory missing and no scripts passed via cmdline!" >&2
 			exit 1
 		fi
 	else
