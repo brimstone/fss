@@ -1,7 +1,9 @@
 #!/bin/sh
+set -ue
 command_exists () {
 	command -v "$@" >/dev/null 2>&1
 }
+DEBUG=1
 package () {
 	NAME=""
 	VERSION=""
@@ -9,9 +11,9 @@ package () {
 package \"name\"
          -or-
 package --name     \"name\"         \\
-		--file     \"path/to/file\" \\
+        --file     \"path/to/file\" \\
         --version  \"version\"      \\
-        --apt                      \\
+        --apt                     \\
         --yum
 "
 	# Too few args
@@ -158,15 +160,16 @@ template --src   \"srcfile\"  \\
 	fi
 	# Check to make sure something set our required variables
 	if [ -z "$SRC" ]; then
-		echo "Missing SRC"
+		echo "template: Missing SRC"
 		echo "$usage"
 		return 1
 	fi
 	if [ -z "$DIST" ]; then
-		echo "Missing DIST"
+		echo "template: Missing DIST"
 		echo "$usage"
 		return 1
 	fi
+	[ $DEBUG -gt 0 ] && echo "template called: '$SRC' '$DIST'"
 	# Actually do the magic
 	(
 		echo "cat <<DOG"
@@ -175,7 +178,7 @@ template --src   \"srcfile\"  \\
 	) | sh > "$DIST"
 	# Post creation tasks
 	if [ -n "$MODE" ]; then
-		if command -v chmod >/dev/null; then
+		if command_exists chmod; then
 			chmod "$MODE" "$DIST"
 		else
 			echo "No such command chmod"
@@ -183,7 +186,7 @@ template --src   \"srcfile\"  \\
 		fi
 	fi
 	if [ -n "$CHUSER" ]; then
-		if command -v chown >/dev/null; then
+		if command_exists chown; then
 			chown "$CHUSER" "$DIST"
 		else
 			echo "No such command chown"
@@ -191,7 +194,7 @@ template --src   \"srcfile\"  \\
 		fi
 	fi
 	if [ -n "$CHGROUP" ]; then
-		if command -v chgrp >/dev/null; then
+		if command_exists chgrp; then
 			chgrp "$CHGROUP" "$DIST"
 		else
 			echo "No such command chgrp"
@@ -199,17 +202,40 @@ template --src   \"srcfile\"  \\
 		fi
 	fi
 }
-if [ $# = 0 ]; then
-	cd "scripts"
-	for s in *; do
-		# only run scripts set executable
-		[ ! -f "$s" ] && continue
-		. "./$s"
+trap "run_fss $@" EXIT
+run_fss_file() {
+	if [ ! -f "$1" ]; then
+		echo "$1 not a file"
+		exit 1
+	fi
+	[ $DEBUG -gt 0 ] && echo "==> Running $1"
+	(
+		cd "${1%/*}"
+		. "./${1##*/}"
+	)
+}
+run_fss_directory() {
+	if [ ! -d "$1" ]; then
+		return 1
+	fi
+	[ $DEBUG -gt 0 ] && echo "==> Running all in $1"
+	for s in "$1"/*; do
+		[ -f "$s" ] && run_fss_file "$s" || :
 	done
-else
-	# run every script specified by the command line
-	while [ $# -gt 0 ]; do
-		. "./$1"
-		shift
-	done
-fi
+}
+run_fss() {
+	tail -n 1 "$0" | grep -q "^ # FSS Last Line Marker$" || return
+	if [ $# = 0 ]; then
+		if ! run_fss_directory "scripts"; then
+			echo "ERROR: scripts directory missing and no scripts passed via cmdline!" >&2
+			exit 1
+		fi
+	else
+		while [ $# -gt 0 ]; do
+			[ -d "$1" ] && run_fss_directory "$1" || :
+			[ -f "$1" ] && run_fss_file "$1" || :
+			shift
+		done
+	fi
+}
+ # FSS Last Line Marker

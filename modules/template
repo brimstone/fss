@@ -57,15 +57,16 @@ template --src   \"srcfile\"  \\
 	fi
 	# Check to make sure something set our required variables
 	if [ -z "$SRC" ]; then
-		echo "Missing SRC"
+		echo "template: Missing SRC"
 		echo "$usage"
 		return 1
 	fi
 	if [ -z "$DIST" ]; then
-		echo "Missing DIST"
+		echo "template: Missing DIST"
 		echo "$usage"
 		return 1
 	fi
+	[ $DEBUG -gt 0 ] && echo "template called: '$SRC' '$DIST'"
 	# Actually do the magic
 	(
 		echo "cat <<DOG"

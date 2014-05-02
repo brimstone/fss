@@ -1,16 +1,53 @@
-if [ $# = 0 ]; then
-	cd "scripts"
-	for s in *; do
-		# only run scripts set executable
-		[ ! -f "$s" ] && continue
-		. "./$s"
+trap "run_fss $@" EXIT
+
+run_fss_file() {
+	if [ ! -f "$1" ]; then
+		echo "$1 not a file"
+		exit 1
+	fi
+	[ $DEBUG -gt 0 ] && echo "==> Running $1"
+# run our script in a subshell
+	(
+		cd "${1%/*}"
+		. "./${1##*/}"
+	)
+}
+
+# Run every file in a directory
+run_fss_directory() {
+# if the directory doesn't exist, error
+	if [ ! -d "$1" ]; then
+		return 1
+	fi
+	[ $DEBUG -gt 0 ] && echo "==> Running all in $1"
+# run all of the files
+	for s in "$1"/*; do
+		[ -f "$s" ] && run_fss_file "$s" || :
 	done
-else
-	# run every script specified by the command line
-	while [ $# -gt 0 ]; do
-		. "./$1"
-		shift
-	done
-fi
+}
+
+# Main runner
+run_fss() {
+# Check to see if anything has been catted onto the end of us
+	tail -n 1 "$0" | grep -q "^ # FSS Last Line Marker$" || return
+# if we have no arguments
+	if [ $# = 0 ]; then
+# Attempt to run everything in the 'scripts' directory
+		if ! run_fss_directory "scripts"; then
+			echo "ERROR: scripts directory missing and no scripts passed via cmdline!" >&2
+			exit 1
+		fi
+	else
+# run every script specified by the command line
+		while [ $# -gt 0 ]; do
+			[ -d "$1" ] && run_fss_directory "$1" || :
+			[ -f "$1" ] && run_fss_file "$1" || :
+			shift
+		done
+	fi
+
+}
+
 
 # vim: ft=sh
+ # FSS Last Line Marker
