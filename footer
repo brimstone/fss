@@ -8,7 +8,8 @@ run_fss_file() {
 	info "Running $1"
 # run our script in a subshell
 	(
-		cd "${1%/*}"
+		BASE="${1%/*}"
+		[ -s "$BASE" ] && cd "$BASE"
 		. "./${1##*/}"
 	)
 }
@@ -21,7 +22,8 @@ run_fss_directory() {
 	fi
 	info "Running all in $1"
 # run all of the files
-	for s in "$1"/*; do
+
+	for s in $( ls "$1"/* | sort || ls "$1"/* ); do
 		[ -f "$s" ] && run_fss_file "$s" || :
 	done
 }
