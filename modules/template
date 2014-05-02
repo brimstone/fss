@@ -13,6 +13,7 @@ template --src   \"srcfile\"  \\
          --user  root       \\
          --group root
 "
+	debug "template(\"$@\")"
 	# Too few args
 	if [ $# -lt 2 ]; then
 		echo "Too few arguments"
@@ -70,7 +71,7 @@ template --src   \"srcfile\"  \\
 		echo "$usage"
 		return 1
 	fi
-	[ $DEBUG -gt 0 ] && echo "template called: '$SRC' '$DIST'"
+	info "template called: '$SRC' '$DIST'"
 	# Actually do the magic
 	(
 		echo "cat <<DOG"
@@ -102,5 +103,6 @@ template --src   \"srcfile\"  \\
 			return 1
 		fi
 	fi
+	# TODO Determine if we did real work
 }
 # vim: ft=sh
