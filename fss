@@ -159,7 +159,11 @@ template --src   \"srcfile\"  \\
 		done
 	fi
 	# Check to make sure something set our required variables
-	if [ -z "$SRC" ]; then
+	if [ -f "$SRC" -a ! -z "$SRC" ]; then
+		SRC=$SRC
+	elif [ -f "templates/$SRC" -a ! -z "templates/$SRC" ]; then
+		SRC="templates/$SRC"
+	else
 		echo "template: Missing SRC"
 		echo "$usage"
 		return 1
