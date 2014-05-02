@@ -1,0 +1,4 @@
+command_exists blah &&
+	echo "Blah is a command, really?"
+
+# vim: ft=sh
