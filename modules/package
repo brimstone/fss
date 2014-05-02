@@ -1,6 +1,8 @@
 package () {
 	NAME=""
 	VERSION=""
+	PACKAGE=""
+	MANAGER=""
 	usage="Error calling packages:
 package \"name\"
          -or-
@@ -10,38 +12,42 @@ package --name     \"name\"         \\
         --apt                     \\
         --yum
 "
+	debug "package(\"$@\")"
 	# Too few args
-	if [ $# -lt 2 ]; then
+	if [ $# -lt 1 ]; then
 		echo "Too few arguments"
 		echo "$usage"
 		return 1
 	# First case
-	elif [ $# = 2 ]; then
-		SRC="$1"
-		DIST="$2"
+	elif [ $# = 1 ]; then
+		if [ -f "$1" ]; then
+			PACKAGE="$1"
+		else
+			NAME="$1"
+		fi
 	# Remaining cases
 	else
 		while [ $# -gt 0 ]; do
 			case "$1" in 
-				--src)
+				--name)
 					shift
-					SRC="$1"
+					NAME="$1"
 				;;
-				--dist)
+				--file)
 					shift
-					DIST="$1"
+					PACKAGE="$1"
 				;;
-				--mode)
+				--version)
 					shift
-					MODE="$1"
+					VERSION="$1"
 				;;
-				--user)
+				--apt)
 					shift
-					CHUSER="$1"
+					MANAGER="apt"
 				;;
-				--group)
+				--yum)
 					shift
-					CHGROUP="$1"
+					MANAGER="yum"
 				;;
 				*)
 					echo "Unknown option: $1"
@@ -53,46 +59,35 @@ package --name     \"name\"         \\
 		done
 	fi
 	# Check to make sure something set our required variables
-	if [ -z "$SRC" ]; then
-		echo "Missing SRC"
+	if [ -z "$NAME" -a -z "$PACKAGE" ]; then
+		error "Missing Package name or file"
 		echo "$usage"
 		return 1
 	fi
-	if [ -z "$DIST" ]; then
-		echo "Missing DIST"
-		echo "$usage"
-		return 1
+	# Figure out our package manager
+	if [ -z "$MANAGER" ]; then
+		if command_exists "apt-get" || command_exists "apt"; then
+			MANAGER="apt"
+		elif command_exists "yum"; then
+			MANAGER="yum"
+		fi
 	fi
 	# Actually do the magic
-	(
-		echo "cat <<DOG"
-		cat "$SRC"
-		echo "DOG"
-	) | sh > "$DIST"
-	# Post creation tasks
-	if [ -n "$MODE" ]; then
-		if command -v chmod >/dev/null; then
-			chmod "$MODE" "$DIST"
-		else
-			echo "No such command chmod"
+	case "$MANAGER" in
+		"apt")
+			if command_exists "apt"; then
+				apt install -y "$NAME"
+			else
+				apt-get install -y "$NAME"
+			fi
+		;;
+		"yum")
+			yum install "$NAME"
+		;;
+		*)
+			error "Unknown package manager $MANAGER"
 			return 1
-		fi
-	fi
-	if [ -n "$CHUSER" ]; then
-		if command -v chown >/dev/null; then
-			chown "$CHUSER" "$DIST"
-		else
-			echo "No such command chown"
-			return 1
-		fi
-	fi
-	if [ -n "$CHGROUP" ]; then
-		if command -v chgrp >/dev/null; then
-			chgrp "$CHGROUP" "$DIST"
-		else
-			echo "No such command chgrp"
-			return 1
-		fi
-	fi
+		;;
+	esac
 }
 # vim: ft=sh
