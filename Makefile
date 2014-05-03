@@ -1,5 +1,6 @@
 fss: header footer modules/*
 	@grep -vhE "^#[^!]" header > fss || true
+	@echo "FSSVERSION=\"$(shell git describe --tags)\"" >> fss
 	@$(foreach file,modules/*, grep -vhE "^#" $(file) >> fss || true)
 	@grep -vhE "^#" footer >> fss || true
 	@sed -i"" -e "/^\$$/d" fss

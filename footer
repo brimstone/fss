@@ -50,6 +50,7 @@ run_fss() {
 
 }
 
+echo "fss version $FSSVERSION"
 
 # vim: ft=sh
  # FSS Last Line Marker
