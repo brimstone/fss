@@ -8,21 +8,23 @@ command_exists () {
 DEBUGLEVEL=1
 
 log(){
-	[ $DEBUGLEVEL -ge $1 ] && echo "==> $2"
+	level="$1"
+	shift
+	[ $DEBUGLEVEL -ge $level ] && echo "==> $@" || :
 }
 
 debug(){
-	log 2 "DEBUG: $1"
+	log 2 "DEBUG: $@"
 }
 
 info(){
-	log 1 "INFO: $1"
+	log 1 "INFO: $@"
 }
 
 warn(){
-	log 0 "WARNING: $1"
+	log 0 "WARNING: $@"
 }
 
 error(){
-	log 0 "ERROR: $1"
+	log 0 "ERROR: $@"
 }
