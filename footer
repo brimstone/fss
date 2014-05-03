@@ -9,7 +9,7 @@ run_fss_file() {
 # run our script in a subshell
 	(
 		BASE="${1%/*}"
-		[ -s "$BASE" ] && cd "$BASE"
+		[ -d "$BASE" ] && cd "$BASE"
 		. "./${1##*/}"
 	)
 }
