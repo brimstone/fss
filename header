@@ -5,7 +5,7 @@ command_exists () {
 	command -v "$@" >/dev/null 2>&1
 }
 
-DEBUGLEVEL=1
+DEBUGLEVEL="1"
 
 log(){
 	level="$1"
@@ -28,3 +28,44 @@ warn(){
 error(){
 	log 0 "ERROR: $@"
 }
+
+embed_templates(){
+	cd templates
+	for f in *; do
+		echo "template_$(echo "$f" | tr '.' '_')(){"
+		echo "cat <<DOG"
+		cat "$f"
+		echo "DOG"
+		echo "}"
+	done
+}
+
+while [ $# -gt 0 ]; do
+	case "$1" in
+		--debug)
+			shift
+			DEBUGLEVEL="2"
+		;;
+		--silent)
+			shift
+			DEBUGLEVEL="0"
+		;;
+		embed)
+			shift
+			embed_templates
+			exit
+		;;
+		concat)
+			shift
+			cat "$0"
+			$0 embed
+			cat "$@"
+			exit
+		;;
+		*)
+			break
+		;;
+	esac
+	shift
+done
+

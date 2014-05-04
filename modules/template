@@ -56,16 +56,8 @@ template --src   \"srcfile\"  \\
 			shift
 		done
 	fi
-	# Check to make sure something set our required variables
-	if [ -f "$SRC" -a ! -z "$SRC" ]; then
-		SRC=$SRC
-	elif [ -f "templates/$SRC" -a ! -z "templates/$SRC" ]; then
-		SRC="templates/$SRC"
-	else
-		echo "template: Missing SRC"
-		echo "$usage"
-		return 1
-	fi
+	# Determine our function name
+	func="template_$(echo "$SRC" | tr '.' '_')"
 	if [ -z "$DIST" ]; then
 		echo "template: Missing DIST"
 		echo "$usage"
@@ -74,10 +66,24 @@ template --src   \"srcfile\"  \\
 	info "template called: '$SRC' '$DIST'"
 	# Actually do the magic
 	(
-		echo "cat <<DOG"
-		cat "$SRC"
-		echo "DOG"
-	) | sh > "$DIST"
+		if ! $func 2>/dev/null; then
+			# Check to make sure something set our required variables
+			if [ -f "$SRC" -a ! -z "$SRC" ]; then
+				SRC=$SRC
+			elif [ -f "templates/$SRC" -a ! -z "templates/$SRC" ]; then
+				SRC="templates/$SRC"
+			else
+				echo "template: Missing SRC"
+				echo "$usage"
+				return 1
+			fi
+			(
+				echo "cat <<DOG"
+				cat "$SRC"
+				echo "DOG"
+			) | sh
+		fi
+	) > "$DIST"
 	# Post creation tasks
 	if [ -n "$MODE" ]; then
 		if command_exists chmod; then
