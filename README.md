@@ -46,4 +46,37 @@ It tries its best to figure out wtf package manager you've got installed and ins
 ### template
 `template "src" "dest"`
 
-This installs...
+This evaluates any variables in "src" and writes out the file to "dest" every time. Any instance of a dollar sign not indicative of a variable must be escaped.
+
+Example:
+#### script
+```bash
+export SERVER=pickles
+template "templates/prog.conf" "/etc/prog/prog.conf"
+```
+#### templates/prog.conf
+```bash
+[general]
+server=$SERVER
+port=1234
+secret=foo\$bar
+```
+#### usage:
+```bash
+./fss script
+```
+
+#### /etc/prog/prog.conf
+```bash
+[general]
+server=pickles
+port=1234
+secret=foo$bar
+````
+
+## Usage
+### `./fss`
+### `./fss <script>`
+### `./fss --debug`
+### `./fss --silent`
+### `./fss concat`
